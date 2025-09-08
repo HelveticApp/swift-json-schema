@@ -56,32 +56,6 @@ extension TypeSyntax {
           }
           """
       )
-    #if canImport(SwiftSyntax602)
-      case .inlineArrayType(let inlineArrayType):
-        guard
-          case GenericArgumentSyntax.Argument.type(let elementType) = inlineArrayType.element
-            .argument
-        else {
-          // The other enum value `.expr` requires an @spi(ExperimentalLanguageFeature) import of SwiftSyntax
-          return .notSupported
-        }
-        guard
-          let codeBlock =
-            elementType
-            .typeInformation(selfTypeName: selfTypeName, selfAnchor: selfAnchor)
-            .codeBlock
-        else {
-          return .notSupported
-        }
-        return .primitive(
-          .array,
-          schema: """
-            JSONArray {
-              \(codeBlock)
-            }
-            """
-        )
-    #endif
     case .dictionaryType(let dictionaryType):
       let keyTypeInfo = dictionaryType.key.typeInformation(
         selfTypeName: selfTypeName,
@@ -248,6 +222,8 @@ extension TypeSyntax {
       .metatypeType, .missingType, .namedOpaqueReturnType, .packElementType, .packExpansionType,
       .suppressedType, .tupleType:
       return .notSupported
+    @unknown default:
+      return .notSupported
     }
   }
 
@@ -255,15 +231,6 @@ extension TypeSyntax {
     switch self.as(TypeSyntaxEnum.self) {
     case .arrayType(let arrayType):
       return arrayType.element.referencesType(named: target)
-    #if canImport(SwiftSyntax602)
-      case .inlineArrayType(let inlineArrayType):
-        if case GenericArgumentSyntax.Argument.type(let elementType) = inlineArrayType.element
-          .argument
-        {
-          return elementType.referencesType(named: target)
-        }
-        return false
-    #endif
     case .dictionaryType(let dictionaryType):
       return dictionaryType.key.referencesType(named: target)
         || dictionaryType.value.referencesType(named: target)
@@ -314,6 +281,8 @@ extension TypeSyntax {
       return attributedType.baseType.referencesType(named: target)
     case .classRestrictionType, .compositionType, .functionType, .metatypeType, .missingType,
       .namedOpaqueReturnType, .packElementType, .packExpansionType, .suppressedType, .tupleType:
+      return false
+    @unknown default:
       return false
     }
   }

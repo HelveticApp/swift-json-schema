@@ -6,13 +6,15 @@ public enum SchemaComposition {
   case anyOf
 }
 
-@attached(extension, conformances: Schemable)
-@attached(member, names: named(schema), named(keyEncodingStrategy))
+@attached(extension, conformances: Schemable, _SchemableRefsProvider)
+@attached(member, names: named(schema), named(keyEncodingStrategy), named(__directRefs))
 public macro Schemable(
   keyStrategy: KeyEncodingStrategies? = nil,
   optionalNulls: Bool = true,
   enumComposition: SchemaComposition = .oneOf,
-  optionalNullUnion: SchemaComposition = .oneOf
+  optionalNullUnion: SchemaComposition = .oneOf,
+  mode: SchemableMode = .inline,
+  attachDefs: Bool = false
 ) = #externalMacro(module: "JSONSchemaMacro", type: "SchemableMacro")
 
 public protocol Schemable {
@@ -41,3 +43,5 @@ public protocol Schemable {
     }
   }
 #endif
+
+public enum SchemableMode { case inline, refs }
