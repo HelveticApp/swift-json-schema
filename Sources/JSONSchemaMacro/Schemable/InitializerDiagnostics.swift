@@ -17,10 +17,11 @@ struct InitializerDiagnostics {
     }
 
     // Build expected parameter list from schema members
+    // Use trimmedDescription to strip trailing comments (trivia) from type annotations
     let expectedParameters: [(name: String, type: String)] = schemableMembers.map { member in
       (
         name: member.identifier.text,
-        type: member.type.description.trimmingCharacters(in: .whitespaces)
+        type: member.type.trimmedDescription
       )
     }
 
@@ -58,7 +59,7 @@ struct InitializerDiagnostics {
 
           return (
             name: identifier.text,
-            type: type.description.trimmingCharacters(in: .whitespaces)
+            type: type.trimmedDescription
           )
         }
       }
@@ -93,7 +94,7 @@ struct InitializerDiagnostics {
     let params = initDecl.signature.parameterClause.parameters
     for (index, (param, expected)) in zip(params, expectedParameters).enumerated() {
       let paramName = param.secondName?.text ?? param.firstName.text
-      let paramType = param.type.description.trimmingCharacters(in: .whitespaces)
+      let paramType = param.type.trimmedDescription
 
       // Check if parameter order is different
       if paramName != expected.name {
@@ -137,7 +138,7 @@ struct InitializerDiagnostics {
       let params = initDecl.signature.parameterClause.parameters
         .map { param in
           let name = param.secondName?.text ?? param.firstName.text
-          let type = param.type.description.trimmingCharacters(in: .whitespaces)
+          let type = param.type.trimmedDescription
           return "\(name): \(type)"
         }
         .joined(separator: ", ")
